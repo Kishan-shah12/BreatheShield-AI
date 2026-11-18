@@ -15,7 +15,7 @@ import { TransitPlanner } from '@/components/Transit/TransitPlanner';
 import { IAQCenter } from '@/components/IAQ/IAQCenter';
 import { CommunityHub } from '@/components/Community/CommunityHub';
 
-const AppShell = memo(function AppShell() {
+const AppShell = memo(function AppShell(): React.JSX.Element {
   const { activeTab, alerts, dismissAlert, accessibilityMode } = useAppContext();
 
   return (
@@ -69,7 +69,7 @@ const AppShell = memo(function AppShell() {
   );
 });
 
-export default function App() {
+export default function App(): React.JSX.Element {
   return (
     <AppContextProvider>
       <AppShell />

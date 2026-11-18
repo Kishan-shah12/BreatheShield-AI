@@ -9,6 +9,7 @@ import { useAppContext } from '@/context/AppContext';
 import {
   dijkstraLowestExposure,
   calculateCommuteMetrics,
+  type DijkstraResult,
 } from '@/lib/aqiCompute';
 import {
   TRANSIT_NODES,
@@ -17,9 +18,24 @@ import {
 import {
   TransitMode,
   type TransitRouteComparison,
+  type TransitNode,
 } from '@/types';
 
-export function useExposureRouting() {
+export interface ExposureRoutingResult {
+  nodes: typeof TRANSIT_NODES;
+  originId: string;
+  destinationId: string;
+  originNode: TransitNode;
+  destNode: TransitNode;
+  setOrigin: (id: string) => void;
+  setDestination: (id: string) => void;
+  lowestExposureResult: DijkstraResult | null;
+  pathNodes: TransitNode[];
+  routeDistanceKm: number;
+  modalComparisons: TransitRouteComparison[];
+}
+
+export function useExposureRouting(): ExposureRoutingResult {
   const { selectedZone } = useAppContext();
   const [originId, setOriginId] = useState<string>('N-HOME');
   const [destinationId, setDestinationId] = useState<string>('N-WORK');

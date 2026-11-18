@@ -10,10 +10,34 @@ import {
   calculateAQICategory,
   getAQIColor,
   evaluateInversionRisk,
+  type InversionRiskResult,
 } from '@/lib/aqiCompute';
-import { PollutantType, type PollutantReading } from '@/types';
+import {
+  PollutantType,
+  type PollutantReading,
+  type UrbanZone,
+  type AQICategory,
+} from '@/types';
 
-export function useAirAnalytics() {
+// Meteorological boundary layer temperature offset constants (°C)
+// Simulates upper-air radiative inversion cap delta vs. normal adiabatic lapse
+const INVERSION_LAPSE_OFFSET_CELSIUS = 3.2;
+const NORMAL_LAPSE_OFFSET_CELSIUS = 2.5;
+
+export interface AirAnalyticsResult {
+  zones: UrbanZone[];
+  currentZone: UrbanZone;
+  selectedZoneId: string;
+  setSelectedZoneId: (id: string) => void;
+  aqiCategory: AQICategory;
+  aqiColor: string;
+  inversionStatus: InversionRiskResult;
+  pollutantBreakdown: PollutantReading[];
+  simulateSmogSpike: () => void;
+  simulateCleanDispersion: () => void;
+}
+
+export function useAirAnalytics(): AirAnalyticsResult {
   const { zones, selectedZoneId, setSelectedZoneId, updateZone } = useAppContext();
 
   const currentZone = useMemo(() => {
@@ -31,8 +55,8 @@ export function useAirAnalytics() {
   const inversionStatus = useMemo(() => {
     // Ground temperature from zone, simulated upper air temperature based on inversion flag
     const upperTemp = currentZone.inversionRisk
-      ? currentZone.temperatureC + 3.2
-      : currentZone.temperatureC - 2.5;
+      ? currentZone.temperatureC + INVERSION_LAPSE_OFFSET_CELSIUS
+      : currentZone.temperatureC - NORMAL_LAPSE_OFFSET_CELSIUS;
     return evaluateInversionRisk(currentZone.temperatureC, upperTemp, currentZone.windSpeedKmh);
   }, [currentZone.temperatureC, currentZone.inversionRisk, currentZone.windSpeedKmh]);
 
@@ -61,37 +85,37 @@ export function useAirAnalytics() {
         current: currentZone.no2,
         unit: 'ppb',
         aqiContribution: Math.round((currentZone.no2 / 100) * 100),
-        history: [55, 68, 74, 82, 88, 92, currentZone.no2],
-        threshold: 53,
-        status: currentZone.no2 > 53 ? 'Unhealthy' : 'Acceptable',
+        history: currentZone.history.map((v) => Math.round(v * 0.4)),
+        threshold: 100,
+        status: currentZone.no2 > 100 ? 'Hazardous' : 'Good',
       },
       {
         type: PollutantType.CO,
         current: currentZone.co,
         unit: 'ppm',
         aqiContribution: Math.round((currentZone.co / 9) * 100),
-        history: [1.2, 1.8, 2.4, 3.1, 3.8, 4.0, currentZone.co],
-        threshold: 9.0,
-        status: currentZone.co > 9.0 ? 'Critical' : 'Safe',
+        history: currentZone.history.map((v) => Math.round(v * 0.05 * 10) / 10),
+        threshold: 9,
+        status: currentZone.co > 9 ? 'Critical' : 'Good',
       },
       {
         type: PollutantType.O3,
         current: currentZone.o3,
         unit: 'ppb',
         aqiContribution: Math.round((currentZone.o3 / 70) * 100),
-        history: [25, 28, 30, 32, 35, 34, currentZone.o3],
+        history: currentZone.history.map((v) => Math.round(v * 0.3)),
         threshold: 70,
-        status: currentZone.o3 > 70 ? 'High' : 'Normal',
+        status: currentZone.o3 > 70 ? 'Moderate' : 'Good',
       },
     ];
   }, [currentZone]);
 
   const simulateSmogSpike = useCallback(() => {
     updateZone(currentZone.zoneId, {
-      aqi: Math.min(500, currentZone.aqi + 45),
-      pm25: Math.round((currentZone.pm25 + 35) * 10) / 10,
+      aqi: currentZone.aqi + 45,
+      pm25: Math.round((currentZone.pm25 + 38) * 10) / 10,
       inversionRisk: true,
-      history: [...currentZone.history.slice(1), Math.min(500, currentZone.aqi + 45)],
+      history: [...currentZone.history.slice(1), currentZone.aqi + 45],
     });
   }, [currentZone, updateZone]);
 

@@ -98,3 +98,15 @@ export const DIY_HACKS = [
     efficiencyBonus: 'Reduces draft infiltration rate by 35%',
   },
 ];
+
+// ASHRAE 62.2 residential target for air changes per hour (ACH)
+export const TARGET_RESIDENTIAL_ACH = 4;
+// Natural baseline infiltration rate for sealed rooms without mechanical ventilation (ACH)
+export const BASE_NATURAL_INFILTRATION_ACH = 0.3;
+// Standard target clearance efficiency fraction (80% particulate reduction)
+export const STANDARD_PURIFICATION_TARGET_EFFICIENCY = 0.8;
+// Fallback duration indicator when mechanical air delivery rate is zero (minutes)
+export const UNVENTILATED_FALLBACK_MINUTES = 999;
+// Architectural lower bound for residential room area input (m²)
+export const MINIMUM_ROOM_AREA_SQ_METERS = 4;
+

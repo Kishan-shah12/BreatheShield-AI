@@ -9,8 +9,13 @@ import { useAirAnalytics } from '@/hooks/useAirAnalytics';
 import { Sparkline } from '@/components/shared/Sparkline';
 import { ZoneCard } from '@/components/shared/ZoneCard';
 import { SmogHeatmap } from './SmogHeatmap';
+import { TelemetryHeroBanner } from './TelemetryHeroBanner';
 
-export const AirTelemetryDashboard = memo(function AirTelemetryDashboard() {
+// Layout dimensions for dashboard pollutant trend sparklines (px)
+const SPARKLINE_PREVIEW_WIDTH = 130;
+const SPARKLINE_PREVIEW_HEIGHT = 32;
+
+export const AirTelemetryDashboard = memo(function AirTelemetryDashboard(): React.JSX.Element {
   const {
     zones,
     currentZone,
@@ -26,98 +31,15 @@ export const AirTelemetryDashboard = memo(function AirTelemetryDashboard() {
 
   return (
     <section aria-label="Hyperlocal AQI Telemetry Dashboard" className="flex flex-col gap-6 fade-in">
-      {/* Top Hero KPI Banner */}
-      <div className="bg-slate-900/70 border border-slate-700/50 rounded-3xl p-6 relative overflow-hidden backdrop-blur-md">
-        <div
-          className="absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none"
-          style={{ backgroundColor: aqiColor }}
-        />
-
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase font-bold tracking-wider text-slate-400">
-                Selected Hyperlocal Sector
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-              <span className="text-xs text-slate-300 font-semibold">{currentZone.zoneName}</span>
-            </div>
-
-            <div className="flex items-baseline gap-4 mt-2">
-              <h1 className="text-5xl font-black text-white tracking-tight" style={{ color: aqiColor }}>
-                {currentZone.aqi}
-              </h1>
-              <div>
-                <span className="text-lg font-bold text-white block leading-snug">
-                  {aqiCategory}
-                </span>
-                <span className="text-xs text-slate-400">
-                  Dominant Pollutant: <strong className="text-slate-200">{currentZone.dominantPollutant}</strong>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Meteorological & Inversion Risk Indicator */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 min-w-[200px]">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-medium">Boundary Layer</span>
-                <span className="text-sm" aria-hidden="true">🌡️</span>
-              </div>
-              <div className="text-base font-bold text-white mt-1">
-                {currentZone.temperatureC}°C <span className="text-xs text-slate-400 font-normal">/ {currentZone.humidityPercent}% RH</span>
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                Wind: <strong className="text-slate-200">{currentZone.windSpeedKmh} km/h</strong>
-              </div>
-            </div>
-
-            <div
-              className={`rounded-2xl p-4 min-w-[230px] border transition-all ${
-                inversionStatus.isInversion
-                  ? 'bg-amber-950/40 border-amber-500/50 text-amber-200'
-                  : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider">Inversion Risk</span>
-                <span aria-hidden="true">{inversionStatus.isInversion ? '⚠️' : '✅'}</span>
-              </div>
-              <div className="text-sm font-black mt-1 capitalize">
-                {inversionStatus.severity} Risk
-              </div>
-              <p className="text-[11px] text-slate-300 mt-1 leading-snug line-clamp-2">
-                {inversionStatus.rationale}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Simulation Controls */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Telemetry Simulation Engine:</span>
-            <button
-              type="button"
-              onClick={simulateSmogSpike}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-900/60 border border-red-500/50 text-red-200 hover:bg-red-800/80 transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              ⚡ Simulate Winter Smog Spike (+45 AQI)
-            </button>
-            <button
-              type="button"
-              onClick={simulateCleanDispersion}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-900/60 border border-emerald-500/50 text-emerald-200 hover:bg-emerald-800/80 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              🍃 Simulate Solar Wind Cleansing (-50 AQI)
-            </button>
-          </div>
-          <span className="text-[11px] text-slate-400">
-            Updated: {new Date(currentZone.lastUpdated).toLocaleTimeString()}
-          </span>
-        </div>
-      </div>
+      {/* Top Hero KPI Banner & Meteorological Controls */}
+      <TelemetryHeroBanner
+        currentZone={currentZone}
+        aqiCategory={aqiCategory}
+        aqiColor={aqiColor}
+        inversionStatus={inversionStatus}
+        onSimulateSmogSpike={simulateSmogSpike}
+        onSimulateCleanDispersion={simulateCleanDispersion}
+      />
 
       {/* Grid: SVG Heatmap (Left) & Pollutant Sparklines (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -158,8 +80,8 @@ export const AirTelemetryDashboard = memo(function AirTelemetryDashboard() {
                   <Sparkline
                     values={pollutant.history}
                     color={pollutant.current > pollutant.threshold ? '#ef4444' : '#10b981'}
-                    width={130}
-                    height={32}
+                    width={SPARKLINE_PREVIEW_WIDTH}
+                    height={SPARKLINE_PREVIEW_HEIGHT}
                     label={`${pollutant.type} 7-hour trend`}
                   />
                 </div>

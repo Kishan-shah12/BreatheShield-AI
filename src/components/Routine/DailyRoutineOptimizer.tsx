@@ -7,10 +7,10 @@
 import { memo, useState, useCallback } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { apiService } from '@/services/apiService';
-import type { PersonaProfile } from '@/types';
 import { RoutineTimeline } from './RoutineTimeline';
+import { PersonaSelector } from './PersonaSelector';
 
-export const DailyRoutineOptimizer = memo(function DailyRoutineOptimizer() {
+export const DailyRoutineOptimizer = memo(function DailyRoutineOptimizer(): React.JSX.Element {
   const {
     personas,
     activePersona,
@@ -35,8 +35,8 @@ export const DailyRoutineOptimizer = memo(function DailyRoutineOptimizer() {
         language,
       });
       setRoutinePlan(plan);
-    } catch (err: unknown) {
-      console.error('Failed to generate routine:', err);
+    } catch {
+      // Graceful fallback to heuristic routine guidance without unhandled client logging
       setErrorMessage('Unable to generate AI schedule right now. Showing localized heuristic guidance.');
     } finally {
       setIsLoading(false);
@@ -78,45 +78,11 @@ export const DailyRoutineOptimizer = memo(function DailyRoutineOptimizer() {
         </div>
 
         {/* Persona Selector Chips */}
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-xs font-semibold text-slate-300">Target Family & Commuter Persona:</legend>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {personas.map((p: PersonaProfile) => {
-              const isSelected = p.id === activePersona.id;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => setActivePersona(p)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                    isSelected
-                      ? 'bg-slate-800/90 border-emerald-500 shadow-md shadow-emerald-950/40 ring-1 ring-emerald-500/50'
-                      : 'bg-slate-800/30 border-slate-700/50 hover:border-slate-600 text-slate-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-slate-300'}`}>
-                      {p.name}
-                    </span>
-                    <span
-                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        p.sensitivityLevel === 'high'
-                          ? 'bg-red-950 text-red-400 border border-red-500/40'
-                          : 'bg-amber-950 text-amber-400 border border-amber-500/40'
-                      }`}
-                    >
-                      {p.sensitivityLevel} Risk
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                    {p.description}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
+        <PersonaSelector
+          personas={personas}
+          activePersona={activePersona}
+          onSelectPersona={setActivePersona}
+        />
 
         <div aria-live="polite" aria-busy={isLoading} className="sr-only">
           {isLoading ? 'Generating personalized air quality daily schedule with Gemini AI…' : 'Schedule ready.'}

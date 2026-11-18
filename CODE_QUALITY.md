@@ -28,7 +28,7 @@ src/
 ├── services/            # Storage persistence (safeParse<T>) and HTTP API wrappers
 │   ├── apiService.ts    # Client-side backend API client
 │   └── storageService.ts# LocalStorage persistence with defensive deserialization
-├── test/                # 5 Vitest + JSDOM test suites (74 automated tests, 100% pass rate)
+├── test/                # 7 Vitest + JSDOM test suites (78 automated tests, 100% pass rate)
 └── types/               # Centralized TypeScript definitions & strict enums (zero `any`)
 server.ts                # Express 5 backend with OWASP defense, SHA-256 LRU cache, and Gemini AI
 ```

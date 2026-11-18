@@ -50,7 +50,36 @@ function buildHourlySlots(persona: ValidatedPersona, zone: ValidatedZone) {
   });
 }
 
-export function generateHeuristicRoutine(persona: ValidatedPersona, zone: ValidatedZone, language: string) {
+export interface HeuristicRoutineResult {
+  generatedAt: number;
+  persona: string;
+  language: string;
+  optimalOutdoorWindow: {
+    startHour: number;
+    endHour: number;
+    rationale: string;
+  };
+  hourlySchedule: Array<{
+    hour: number;
+    timeLabel: string;
+    activity: string;
+    recommendation: string;
+    predictedAQI: number;
+    smogDispersionFactor: number;
+    inversionLikelihood: string;
+    healthImpactNotes: string;
+    environmentalOffsetNotes: string;
+  }>;
+  totalExposureScore: number;
+  carbonOffsetKg: number;
+  generalAdvice: string[];
+}
+
+export function generateHeuristicRoutine(
+  persona: ValidatedPersona,
+  zone: ValidatedZone,
+  language: string
+): HeuristicRoutineResult {
   const isHighRisk = persona.sensitivityLevel === 'high' || zone.aqi > 150;
   const safeStart = zone.inversionRisk ? 13 : 11;
   const safeEnd = zone.inversionRisk ? 16 : 17;
@@ -76,7 +105,11 @@ export function generateHeuristicRoutine(persona: ValidatedPersona, zone: Valida
   };
 }
 
-export async function getAiRoutineInsights(persona: ValidatedPersona, zone: ValidatedZone, cleanLang: string) {
+export async function getAiRoutineInsights(
+  persona: ValidatedPersona,
+  zone: ValidatedZone,
+  cleanLang: string
+): Promise<unknown> {
   if (aiClient) {
     try {
       const model = aiClient.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });

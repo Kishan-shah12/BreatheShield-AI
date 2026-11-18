@@ -34,7 +34,7 @@ import type { AppContextValue } from './types';
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppContextProvider({ children }: { children: ReactNode }) {
+export function AppContextProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [activeTab, setActiveTabState] = useState<TabId>(TabId.Dashboard);
   const [zones, setZones] = useState<UrbanZone[]>(() => storageService.getZones());
   const [selectedZoneId, setSelectedZoneIdState] = useState<string>(() => storageService.getSelectedZoneId());
