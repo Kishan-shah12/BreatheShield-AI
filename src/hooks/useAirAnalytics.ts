@@ -111,11 +111,12 @@ export function useAirAnalytics(): AirAnalyticsResult {
   }, [currentZone]);
 
   const simulateSmogSpike = useCallback(() => {
+    const spikedAqi = Math.min(500, currentZone.aqi + 45);
     updateZone(currentZone.zoneId, {
-      aqi: currentZone.aqi + 45,
+      aqi: spikedAqi,
       pm25: Math.round((currentZone.pm25 + 38) * 10) / 10,
       inversionRisk: true,
-      history: [...currentZone.history.slice(1), currentZone.aqi + 45],
+      history: [...currentZone.history.slice(1), spikedAqi],
     });
   }, [currentZone, updateZone]);
 

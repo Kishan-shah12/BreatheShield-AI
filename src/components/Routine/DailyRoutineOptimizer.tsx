@@ -36,8 +36,9 @@ export const DailyRoutineOptimizer = memo(function DailyRoutineOptimizer(): Reac
         language,
       });
       setRoutinePlan(plan);
-    } catch {
-      // Graceful fallback to heuristic routine guidance without unhandled client logging
+    } catch (err: unknown) {
+      const reason = err instanceof Error ? err.message : String(err);
+      console.error('[ROUTINE_OPTIMIZER] AI schedule generation failed, using heuristic fallback:', reason);
       setErrorMessage('Unable to generate AI schedule right now. Showing localized heuristic guidance.');
     } finally {
       setIsLoading(false);
