@@ -62,3 +62,73 @@ export function validatePersona(p: unknown): p is ValidatedPersona {
 
   return true;
 }
+
+export interface ValidatedHourlySlot {
+  hour: number;
+  timeLabel: string;
+  activity: string;
+  recommendation: string;
+  predictedAQI: number;
+  smogDispersionFactor: number;
+  inversionLikelihood: string;
+  healthImpactNotes: string;
+  environmentalOffsetNotes: string;
+}
+
+export interface ValidatedRoutineResult {
+  generatedAt: number;
+  persona: string;
+  language: string;
+  optimalOutdoorWindow: {
+    startHour: number;
+    endHour: number;
+    rationale: string;
+  };
+  hourlySchedule: ValidatedHourlySlot[];
+  totalExposureScore: number;
+  carbonOffsetKg: number;
+  generalAdvice: string[];
+}
+
+export function validateRoutineResult(data: unknown): data is ValidatedRoutineResult {
+  if (typeof data !== 'object' || data === null) return false;
+  const r = data as Record<string, unknown>;
+
+  if (typeof r.persona !== 'string' || r.persona.length === 0) return false;
+  if (!isFiniteNumber(r.totalExposureScore) || r.totalExposureScore < 0) return false;
+  if (!isFiniteNumber(r.carbonOffsetKg) || r.carbonOffsetKg < 0) return false;
+
+  if (typeof r.optimalOutdoorWindow !== 'object' || r.optimalOutdoorWindow === null) return false;
+  const w = r.optimalOutdoorWindow as Record<string, unknown>;
+  if (
+    !isFiniteNumber(w.startHour) ||
+    w.startHour < 0 ||
+    w.startHour > 23 ||
+    !isFiniteNumber(w.endHour) ||
+    w.endHour < 0 ||
+    w.endHour > 23 ||
+    typeof w.rationale !== 'string'
+  ) {
+    return false;
+  }
+
+  if (!Array.isArray(r.hourlySchedule) || r.hourlySchedule.length === 0) return false;
+  for (const slot of r.hourlySchedule) {
+    if (typeof slot !== 'object' || slot === null) return false;
+    const s = slot as Record<string, unknown>;
+    if (
+      !isFiniteNumber(s.hour) ||
+      typeof s.timeLabel !== 'string' ||
+      typeof s.activity !== 'string' ||
+      typeof s.recommendation !== 'string' ||
+      !isFiniteNumber(s.predictedAQI)
+    ) {
+      return false;
+    }
+  }
+
+  if (!Array.isArray(r.generalAdvice) || r.generalAdvice.length === 0) return false;
+  if (!r.generalAdvice.every((a) => typeof a === 'string')) return false;
+
+  return true;
+}

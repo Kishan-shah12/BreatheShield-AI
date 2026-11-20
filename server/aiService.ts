@@ -4,7 +4,12 @@
 // ============================================================
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { ValidatedPersona, ValidatedZone } from './validators';
+import {
+  validateRoutineResult,
+  isFiniteNumber,
+  type ValidatedPersona,
+  type ValidatedZone,
+} from './validators';
 
 const geminiApiKey = process.env.NODE_ENV === 'test' ? '' : (process.env.GEMINI_API_KEY || '');
 const aiClient = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
@@ -109,7 +114,7 @@ export async function getAiRoutineInsights(
   persona: ValidatedPersona,
   zone: ValidatedZone,
   cleanLang: string
-): Promise<unknown> {
+): Promise<HeuristicRoutineResult> {
   if (aiClient) {
     try {
       const model = aiClient.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
@@ -124,7 +129,15 @@ Return ONLY a strict valid JSON object matching this structure:
 
       const aiResponse = await model.generateContent(prompt);
       const jsonMatch = aiResponse.response.text().match(/\{[\s\S]*\}/);
-      if (jsonMatch) return JSON.parse(jsonMatch[0]);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        parsed.generatedAt = isFiniteNumber(parsed.generatedAt) ? parsed.generatedAt : Date.now();
+        parsed.language = typeof parsed.language === 'string' && parsed.language.length > 0 ? parsed.language : cleanLang;
+        if (validateRoutineResult(parsed)) {
+          return parsed;
+        }
+        console.warn('[AI GATEWAY LOG] Routine response failed runtime schema validation, falling back to heuristic');
+      }
     } catch (err) {
       console.error('[AI GATEWAY LOG] Routine generation fallback triggered:', err);
     }
