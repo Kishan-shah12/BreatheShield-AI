@@ -6,6 +6,7 @@
 
 import { memo } from 'react';
 import type { IAQRoomConfig } from '@/types';
+import { CADRDiagnosticsGrid } from './CADRDiagnosticsGrid';
 
 interface CADRCalculatorCardProps {
   rooms: IAQRoomConfig[];
@@ -106,45 +107,13 @@ export const CADRCalculatorCard = memo(function CADRCalculatorCard({
         </div>
 
         {/* Diagnostic Metrics Display */}
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Target CADR (4 ACH)
-            </span>
-            <div className="text-2xl font-black text-white mt-2">
-              {requiredCadrM3H} <span className="text-xs font-normal text-slate-400">m³/h</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              Volume: {roomVolumeM3} m³ ({activeRoom.ceilingHeightMeters}m ceiling).
-            </p>
-          </div>
-
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Effective Air Changes
-            </span>
-            <div className="text-2xl font-black text-emerald-400 mt-2">
-              {effectiveAch} <span className="text-xs font-normal text-slate-400">ACH</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              {effectiveAch >= 4
-                ? '✅ Meets hospital-grade clean room target.'
-                : '⚠️ Sub-optimal air recycling rate.'}
-            </p>
-          </div>
-
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              80% Clean Time
-            </span>
-            <div className="text-2xl font-black text-sky-400 mt-2">
-              {purificationTimeMins > 120 ? 'No Purifier' : `${purificationTimeMins} mins`}
-            </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              Time required to filter out airborne ambient particles.
-            </p>
-          </div>
-        </div>
+        <CADRDiagnosticsGrid
+          requiredCadrM3H={requiredCadrM3H}
+          effectiveAch={effectiveAch}
+          purificationTimeMins={purificationTimeMins}
+          roomVolumeM3={roomVolumeM3}
+          ceilingHeightMeters={activeRoom.ceilingHeightMeters}
+        />
       </div>
 
       {cadrDeficit > 0 && (
